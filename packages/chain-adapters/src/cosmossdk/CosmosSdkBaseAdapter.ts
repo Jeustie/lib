@@ -2,7 +2,6 @@ import { AssetNamespace, CAIP2, caip2, caip19 } from '@shapeshiftoss/caip'
 import { CosmosSignTx } from '@shapeshiftoss/hdwallet-core'
 import { BIP44Params, chainAdapters, ChainTypes } from '@shapeshiftoss/types'
 import * as unchained from '@shapeshiftoss/unchained-client'
-import WAValidator from 'multicoin-address-validator'
 
 import { ChainAdapter as IChainAdapter } from '../api'
 import { ErrorHandler } from '../error/ErrorHandler'
@@ -163,10 +162,15 @@ export abstract class CosmosSdkBaseAdapter<T extends CosmosChainTypes> implement
     signTxInput: chainAdapters.SignTxInput<CosmosSignTx>
   ): Promise<string>
 
-  async validateAddress(address: string): Promise<chainAdapters.ValidAddressResult> {
-    const isValidAddress = WAValidator.validate(address, this.getType())
-    if (isValidAddress) return { valid: true, result: chainAdapters.ValidAddressResultType.Valid }
-    return { valid: false, result: chainAdapters.ValidAddressResultType.Invalid }
+  async validateAddress(_address: string): Promise<chainAdapters.ValidAddressResult> {
+    // TODO(gomes): Implement proper address validation. WAValidator doesn't support cosmos
+    // Address validation is currently done at unchained middleware level
+    // https://github.com/shapeshift/unchained/blob/fe084f59e650c48b21f193152add0832bc80c37f/go/pkg/cosmos/cosmos.go#L175
+    // We should expose the IsValidAddress to be consumed by lib, so we can handle address validation in web
+    return {
+      valid: true,
+      result: chainAdapters.ValidAddressResultType.Valid
+    }
   }
 
   async subscribeTxs(
