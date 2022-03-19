@@ -162,14 +162,15 @@ export abstract class CosmosSdkBaseAdapter<T extends CosmosChainTypes> implement
     signTxInput: chainAdapters.SignTxInput<CosmosSignTx>
   ): Promise<string>
 
-  async validateAddress(_address: string): Promise<chainAdapters.ValidAddressResult> {
-    // TODO(gomes): Implement proper address validation. WAValidator doesn't support cosmos
-    // Address validation is currently done at unchained middleware level
-    // https://github.com/shapeshift/unchained/blob/fe084f59e650c48b21f193152add0832bc80c37f/go/pkg/cosmos/cosmos.go#L175
-    // We should expose the IsValidAddress to be consumed by lib, so we can handle address validation in web
-    return {
-      valid: true,
-      result: chainAdapters.ValidAddressResultType.Valid
+  async validateAddress(address: string): Promise<chainAdapters.ValidAddressResult> {
+    try {
+      await this.providers.http.getAccount({ pubkey: address })
+      return {
+        valid: true,
+        result: chainAdapters.ValidAddressResultType.Valid
+      }
+    } catch (_) {
+      return { valid: false, result: chainAdapters.ValidAddressResultType.Invalid }
     }
   }
 
